@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <deque>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 
 namespace channel {
@@ -24,6 +25,18 @@ namespace channel {
       std::mutex lock;
       std::condition_variable cond;
       bool is_shutdown = false;
+
+      std::optional<T> tryRecv() {
+        std::unique_lock<std::mutex> guard(lock);
+        if (queue.empty()) {
+          return {};
+        } else {
+          T val = queue.front();
+          queue.pop_front();
+
+          return val;
+        }
+      }
 
       T recv() {
         std::unique_lock<std::mutex> guard(lock);
@@ -64,6 +77,10 @@ namespace channel {
     public:
       Receiver() {}
       Receiver(Channel<T>* c) : chan(c) {}
+
+      std::optional<T> tryRecv() {
+        return chan->tryRecv();
+      }
 
       T recv() {
         return chan->recv();

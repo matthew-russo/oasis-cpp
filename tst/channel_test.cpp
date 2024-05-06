@@ -147,3 +147,20 @@ TEST(ChannelTest, ChannelShutdownWakesUpBlockedThreads) {
   delayed_shutdown_thread.join();
   blocking_recv_thread.join();
 }
+
+TEST(ChannelTest, ChannelTryRecvReturnsEmptyOptionalIfEmpty) {
+  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
+  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::optional<uint32_t> t = receiver.tryRecv();
+  EXPECT_EQ(false, t.has_value());
+}
+
+TEST(ChannelTest, ChannelTryRecvReturnsFrontIfNonEmpty) {
+  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
+  Sender<uint32_t> sender = sender_receiver.first;
+  Receiver<uint32_t> receiver = sender_receiver.second;
+  sender.send(42);
+  std::optional<uint32_t> t = receiver.tryRecv();
+  EXPECT_EQ(true, t.has_value());
+  EXPECT_EQ(42, t.value());
+}

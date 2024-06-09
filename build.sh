@@ -3,7 +3,7 @@
 set -eaux
 
 export STARTING_DIR="$(pwd)"
-export INSTALL_PREFIX="~/.local"
+export INSTALL_PREFIX="$HOME/.local"
 export BUILD_DIR="cmake-build-release"
 export CXX="clang++"
 

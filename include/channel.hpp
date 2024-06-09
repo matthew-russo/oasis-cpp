@@ -4,17 +4,13 @@
 #include <cassert>
 #include <condition_variable>
 #include <deque>
+#include <expected>
 #include <mutex>
 #include <optional>
-#include <stdexcept>
 
 namespace channel {
-struct ChannelShutDownException : public std::runtime_error {
-public:
-  ChannelShutDownException()
-      : std::runtime_error("Channel has been shut down") {}
-
-  const char *what() const throw() { return "Channel has been shut down"; }
+enum class ChannelError {
+  Shutdown,
 };
 
 template <typename T> class Channel {
@@ -24,29 +20,32 @@ private:
   std::condition_variable cond;
   bool is_shutdown = false;
 
-  std::optional<T> tryRecv() {
+  std::expected<std::optional<T>, ChannelError> tryRecv() {
     std::unique_lock<std::mutex> guard(lock);
+
+    if (is_shutdown) {
+      return std::unexpected(ChannelError::Shutdown);
+    }
+
     if (queue.empty()) {
       return {};
     } else {
       T val = queue.front();
       queue.pop_front();
-
       return val;
     }
   }
 
-  T recv() {
+  std::expected<T, ChannelError> recv() {
     std::unique_lock<std::mutex> guard(lock);
     cond.wait(guard, [this]() { return !queue.empty() || is_shutdown; });
 
     if (is_shutdown) {
-      throw ChannelShutDownException();
+      return std::unexpected(ChannelError::Shutdown);
     }
 
     T val = queue.front();
     queue.pop_front();
-
     return val;
   }
 
@@ -71,9 +70,9 @@ public:
   Receiver() {}
   Receiver(Channel<T> *c) : chan(c) {}
 
-  std::optional<T> tryRecv() { return chan->tryRecv(); }
+  std::expected<std::optional<T>, ChannelError> tryRecv() { return chan->tryRecv(); }
 
-  T recv() { return chan->recv(); }
+  std::expected<T, ChannelError> recv() { return chan->recv(); }
 
 private:
   Channel<T> *chan;

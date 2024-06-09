@@ -22,8 +22,9 @@ TEST(ChannelTest, ChannelCanRecv) {
   Sender<uint32_t> sender = sender_receiver.first;
   Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  uint32_t t = receiver.recv();
-  EXPECT_EQ(42, t);
+  std::expected<uint32_t, ChannelError> t = receiver.recv();
+  EXPECT_EQ(true, t.has_value());
+  EXPECT_EQ(42, t.value());
 }
 
 // the following global atomics and functions are for the multi-threaded tests
@@ -46,7 +47,9 @@ void delayedSend(Sender<uint32_t> sender) {
 }
 
 void recv(Receiver<uint32_t> receiver) {
-  uint32_t t = receiver.recv();
+  std::expected<uint32_t, ChannelError> t_res = receiver.recv();
+  // ensure we didn't get an error
+  uint32_t t = t_res.value();
   has_received.store(true, std::memory_order_relaxed);
   received_value.store(t, std::memory_order_relaxed);
 }
@@ -88,11 +91,14 @@ TEST(ChannelTest, ChannelCanShutdown) {
   Sender<uint32_t> sender = sender_receiver.first;
   Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  uint32_t t = receiver.recv();
-  EXPECT_EQ(42, t);
+  std::expected<uint32_t, ChannelError> t_with_value = receiver.recv();
+  EXPECT_EQ(true, t_with_value.has_value());
+  EXPECT_EQ(42, t_with_value.value());
 
   sender.shutdown();
-  EXPECT_THROW(receiver.recv(), ChannelShutDownException);
+  std::expected<uint32_t, ChannelError> t_with_err = receiver.recv();
+  EXPECT_EQ(false, t_with_err.has_value());
+  EXPECT_EQ(ChannelError::Shutdown, t_with_err.error());
 }
 
 // the following global atomics and functions are for the multi-threaded tests
@@ -111,10 +117,8 @@ void delayedShutdown(Sender<uint32_t> sender) {
 }
 
 void recvHandleShutdown(Receiver<uint32_t> receiver) {
-  try {
-    uint32_t t = receiver.recv();
-    throw std::runtime_error("recv should have thrown once sender shut down");
-  } catch(ChannelShutDownException& e) {
+  std::expected<uint32_t, ChannelError> t = receiver.recv();
+  if (!t.has_value()) {
     has_handled_shutdown.store(true, std::memory_order_relaxed);
   }
 }
@@ -151,7 +155,9 @@ TEST(ChannelTest, ChannelShutdownWakesUpBlockedThreads) {
 TEST(ChannelTest, ChannelTryRecvReturnsEmptyOptionalIfEmpty) {
   std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
   Receiver<uint32_t> receiver = sender_receiver.second;
-  std::optional<uint32_t> t = receiver.tryRecv();
+  std::expected<std::optional<uint32_t>, ChannelError> t_res = receiver.tryRecv();
+  EXPECT_EQ(true, t_res.has_value());
+  std::optional<uint32_t> t = t_res.value();
   EXPECT_EQ(false, t.has_value());
 }
 
@@ -160,7 +166,9 @@ TEST(ChannelTest, ChannelTryRecvReturnsFrontIfNonEmpty) {
   Sender<uint32_t> sender = sender_receiver.first;
   Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  std::optional<uint32_t> t = receiver.tryRecv();
+  std::expected<std::optional<uint32_t>, ChannelError> t_res = receiver.tryRecv();
+  EXPECT_EQ(true, t_res.has_value());
+  std::optional<uint32_t> t = t_res.value();
   EXPECT_EQ(true, t.has_value());
   EXPECT_EQ(42, t.value());
 }

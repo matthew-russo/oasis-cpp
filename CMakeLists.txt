@@ -13,6 +13,7 @@ add_library(oasis INTERFACE)
 target_include_directories(oasis INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/channel.hpp)
 target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/tcp.hpp)
+target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uuid.hpp)
 
 set_target_properties(oasis PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(oasis PROPERTIES SOVERSION 1)
@@ -43,6 +44,7 @@ enable_testing()
 add_executable(
   oasis_test
   tst/channel_test.cpp
+  tst/uuid_test.cpp
 )
 target_link_libraries(
   oasis_test

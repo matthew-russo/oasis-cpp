@@ -66,6 +66,14 @@ public:
 
     return Uuid(lo, hi);
   }
+
+  inline bool operator==(const Uuid& rhs) const {
+    return this->lo == rhs.lo && this->hi == rhs.hi;
+  }
+
+  inline bool operator!=(const Uuid& rhs) const {
+    return !operator==(rhs);
+  }
 };
 
 /// The formal definition of the UUID string representation is provided by the following ABNF [RFC5234]:

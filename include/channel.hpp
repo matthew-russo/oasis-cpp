@@ -1,5 +1,5 @@
-#ifndef OASIS_CHANNEL_CPP_H
-#define OASIS_CHANNEL_CPP_H
+#ifndef OASIS_CHANNEL_H
+#define OASIS_CHANNEL_H
 
 #include <cassert>
 #include <condition_variable>

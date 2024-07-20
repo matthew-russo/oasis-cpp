@@ -1,7 +1,11 @@
+#ifndef OASIS_TCP_H
+#define OASIS_TCP_H
+
 #include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+namespace networking {
 class TcpConnection {
 private:
   int connfd;
@@ -84,3 +88,6 @@ public:
     close(sockfd);
   }
 };
+}; // namespace networking
+
+#endif

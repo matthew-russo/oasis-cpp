@@ -15,7 +15,7 @@ trap cleanup EXIT
 cmake -S . -B $BUILD_DIR
 cmake --build $BUILD_DIR --config Release
 cd $BUILD_DIR
-ctest
+ctest -V
 
 cd ..
 

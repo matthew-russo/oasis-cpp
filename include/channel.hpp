@@ -8,6 +8,7 @@
 #include <mutex>
 #include <optional>
 
+namespace oasis {
 namespace channel {
 enum class ChannelError {
   Shutdown,
@@ -96,5 +97,6 @@ template <typename T> std::pair<Sender<T>, Receiver<T>> mkChannel() {
   return std::pair(Sender<T>(chan), Receiver<T>(chan));
 }
 }; // namespace channel
+}; // namespace oasis
 
-#endif
+#endif // OASIS_CHANNEL_H

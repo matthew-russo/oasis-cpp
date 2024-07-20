@@ -5,24 +5,31 @@
 
 #include "channel.hpp"
 
-using namespace channel;
-
 TEST(ChannelTest, CanConstructSenderAndReceiver) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
 }
 
 TEST(ChannelTest, SenderCanSend) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
   sender.send(42);
 }
 
 TEST(ChannelTest, ChannelCanRecv) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
-  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  std::expected<uint32_t, ChannelError> t = receiver.recv();
+  std::expected<uint32_t, oasis::channel::ChannelError> t = receiver.recv();
   EXPECT_EQ(true, t.has_value());
   EXPECT_EQ(42, t.value());
 }
@@ -37,7 +44,7 @@ uint32_t value_to_send = 42;
 
 uint64_t sender_sleep_duration_ms = 10;
 
-void delayedSend(Sender<uint32_t> sender) {
+void delayedSend(oasis::channel::Sender<uint32_t> sender) {
   while (!should_send.load(std::memory_order_relaxed)) {
     std::this_thread::sleep_for(std::chrono::milliseconds(sender_sleep_duration_ms));
   }
@@ -46,8 +53,8 @@ void delayedSend(Sender<uint32_t> sender) {
   has_sent.store(true, std::memory_order_relaxed);
 }
 
-void recv(Receiver<uint32_t> receiver) {
-  std::expected<uint32_t, ChannelError> t_res = receiver.recv();
+void recv(oasis::channel::Receiver<uint32_t> receiver) {
+  std::expected<uint32_t, oasis::channel::ChannelError> t_res = receiver.recv();
   // ensure we didn't get an error
   uint32_t t = t_res.value();
   has_received.store(true, std::memory_order_relaxed);
@@ -55,9 +62,12 @@ void recv(Receiver<uint32_t> receiver) {
 }
 
 TEST(ChannelTest, ChannelRecvBlocksUntilSomethingSent) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
-  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
 
   std::thread delayed_sender_thread(delayedSend, sender);
   std::thread blocking_recv_thread(recv, receiver);
@@ -87,18 +97,21 @@ TEST(ChannelTest, ChannelRecvBlocksUntilSomethingSent) {
 }
 
 TEST(ChannelTest, ChannelCanShutdown) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
-  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  std::expected<uint32_t, ChannelError> t_with_value = receiver.recv();
+  std::expected<uint32_t, oasis::channel::ChannelError> t_with_value = receiver.recv();
   EXPECT_EQ(true, t_with_value.has_value());
   EXPECT_EQ(42, t_with_value.value());
 
   sender.shutdown();
-  std::expected<uint32_t, ChannelError> t_with_err = receiver.recv();
+  std::expected<uint32_t, oasis::channel::ChannelError> t_with_err = receiver.recv();
   EXPECT_EQ(false, t_with_err.has_value());
-  EXPECT_EQ(ChannelError::Shutdown, t_with_err.error());
+  EXPECT_EQ(oasis::channel::ChannelError::Shutdown, t_with_err.error());
 }
 
 // the following global atomics and functions are for the multi-threaded tests
@@ -107,7 +120,7 @@ std::atomic<bool> should_shutdown = false;
 std::atomic<bool> has_shutdown = false;
 std::atomic<bool> has_handled_shutdown = false;
 
-void delayedShutdown(Sender<uint32_t> sender) {
+void delayedShutdown(oasis::channel::Sender<uint32_t> sender) {
   while (!should_shutdown.load(std::memory_order_relaxed)) {
     std::this_thread::sleep_for(std::chrono::milliseconds(sender_sleep_duration_ms));
   }
@@ -116,17 +129,20 @@ void delayedShutdown(Sender<uint32_t> sender) {
   has_shutdown.store(true, std::memory_order_relaxed);
 }
 
-void recvHandleShutdown(Receiver<uint32_t> receiver) {
-  std::expected<uint32_t, ChannelError> t = receiver.recv();
+void recvHandleShutdown(oasis::channel::Receiver<uint32_t> receiver) {
+  std::expected<uint32_t, oasis::channel::ChannelError> t = receiver.recv();
   if (!t.has_value()) {
     has_handled_shutdown.store(true, std::memory_order_relaxed);
   }
 }
 
 TEST(ChannelTest, ChannelShutdownWakesUpBlockedThreads) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
-  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
 
   std::thread delayed_shutdown_thread(delayedShutdown, sender);
   std::thread blocking_recv_thread(recvHandleShutdown, receiver);
@@ -153,20 +169,26 @@ TEST(ChannelTest, ChannelShutdownWakesUpBlockedThreads) {
 }
 
 TEST(ChannelTest, ChannelTryRecvReturnsEmptyOptionalIfEmpty) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Receiver<uint32_t> receiver = sender_receiver.second;
-  std::expected<std::optional<uint32_t>, ChannelError> t_res = receiver.tryRecv();
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
+  std::expected<std::optional<uint32_t>, oasis::channel::ChannelError> t_res = receiver.tryRecv();
   EXPECT_EQ(true, t_res.has_value());
   std::optional<uint32_t> t = t_res.value();
   EXPECT_EQ(false, t.has_value());
 }
 
 TEST(ChannelTest, ChannelTryRecvReturnsFrontIfNonEmpty) {
-  std::pair<Sender<uint32_t>, Receiver<uint32_t>> sender_receiver = mkChannel<uint32_t>();
-  Sender<uint32_t> sender = sender_receiver.first;
-  Receiver<uint32_t> receiver = sender_receiver.second;
+  std::pair<
+    oasis::channel::Sender<uint32_t>,
+    oasis::channel::Receiver<uint32_t>
+  > sender_receiver = oasis::channel::mkChannel<uint32_t>();
+  oasis::channel::Sender<uint32_t> sender = sender_receiver.first;
+  oasis::channel::Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
-  std::expected<std::optional<uint32_t>, ChannelError> t_res = receiver.tryRecv();
+  std::expected<std::optional<uint32_t>, oasis::channel::ChannelError> t_res = receiver.tryRecv();
   EXPECT_EQ(true, t_res.has_value());
   std::optional<uint32_t> t = t_res.value();
   EXPECT_EQ(true, t.has_value());

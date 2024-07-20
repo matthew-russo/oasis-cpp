@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+namespace oasis {
 namespace networking {
 class TcpConnection {
 private:
@@ -89,5 +90,6 @@ public:
   }
 };
 }; // namespace networking
+}; // namespace oasis
 
-#endif
+#endif // OASIS_TCP_H

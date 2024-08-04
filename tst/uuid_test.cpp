@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <string_view>
+#include <unordered_set>
 
 #include "uuid.hpp"
 #include "time.hpp"
@@ -78,4 +79,17 @@ TEST(UuidTest, CanFormatUuid) {
   EXPECT_EQ(0b10, var);
   EXPECT_LE(millisSinceEpochBefore, timestamp);
   EXPECT_GE(millisSinceEpochAfter, timestamp);
+}
+
+TEST(UuidTest, CanUseUuidsInMap) {
+  oasis::uuid::Uuid a = oasis::uuid::Uuid::v7();
+  oasis::uuid::Uuid b = oasis::uuid::Uuid::v7();
+  oasis::uuid::Uuid c = oasis::uuid::Uuid::v7();
+
+  std::unordered_set< oasis::uuid::Uuid > uuids{ a };
+
+  uuids.insert(b);
+  uuids.insert(c);
+
+  EXPECT_EQ(3, uuids.size());
 }

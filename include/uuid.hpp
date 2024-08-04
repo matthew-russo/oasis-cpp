@@ -2,7 +2,8 @@
 #define OASIS_UUID_H
 
 #include <cstdint>
-#include <iostream>
+#include <iomanip>
+#include <ostream>
 #include <random>
 
 #include "time.hpp"
@@ -22,8 +23,11 @@ private:
 
   Uuid(uint64_t lo, uint64_t hi) : lo(lo), hi(hi) {};
 
-  // allow our overload to print internals
+  // allow our overload to access internals
   friend std::ostream& operator<<(std::ostream&, const Uuid&);
+
+  // allow our overload to access internals
+  friend struct std::hash<Uuid>; // friend the class, not the member function
 
 public:
   //  0                   1                   2                   3
@@ -104,5 +108,14 @@ std::ostream& operator<<(std::ostream& os, const Uuid& uuid)
 }
 }; // namespace uuid
 }; // namespace oasis
+
+template <>
+struct std::hash< oasis::uuid::Uuid > {
+  std::size_t operator()(const oasis::uuid::Uuid& uuid) const {
+    size_t h1 = hash<uint64_t>()(uuid.lo);
+    size_t h2 = hash<uint64_t>()(uuid.hi);
+    return h1 ^ (h2 << 1);
+  }
+};
 
 #endif // OASIS_UUID_H

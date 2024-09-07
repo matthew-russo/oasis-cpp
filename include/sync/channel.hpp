@@ -1,5 +1,5 @@
-#ifndef OASIS_CHANNEL_H
-#define OASIS_CHANNEL_H
+#ifndef OASIS_SYNC_CHANNEL_H
+#define OASIS_SYNC_CHANNEL_H
 
 #include <cassert>
 #include <condition_variable>
@@ -9,7 +9,9 @@
 #include <optional>
 
 namespace oasis {
+namespace sync {
 namespace channel {
+
 enum class ChannelError {
   Shutdown,
 };
@@ -96,7 +98,9 @@ template <typename T> std::pair<Sender<T>, Receiver<T>> mkChannel() {
   Channel<T> *chan = new Channel<T>();
   return std::pair(Sender<T>(chan), Receiver<T>(chan));
 }
+
 }; // namespace channel
+}; // namespace sync
 }; // namespace oasis
 
-#endif // OASIS_CHANNEL_H
+#endif // OASIS_SYNC_CHANNEL_H

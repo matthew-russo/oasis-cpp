@@ -11,8 +11,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 # --- Configure Oasis ------------------------------------------------
 add_library(oasis INTERFACE)
 target_include_directories(oasis INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/channel.hpp)
-target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/tcp.hpp)
+target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/net/tcp.hpp)
+target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/os/kqueue.hpp)
+target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/sync/channel.hpp)
 target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/time.hpp)
 target_sources(oasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uuid.hpp)
 
@@ -45,6 +46,7 @@ enable_testing()
 add_executable(
   oasis_test
   tst/channel_test.cpp
+  tst/kqueue_test.cpp
   tst/uuid_test.cpp
 )
 target_link_libraries(

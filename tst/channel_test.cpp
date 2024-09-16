@@ -30,7 +30,7 @@ TEST(ChannelTest, ChannelCanRecv) {
   oasis::sync::channel::Receiver<uint32_t> receiver = sender_receiver.second;
   sender.send(42);
   std::expected<uint32_t, oasis::sync::channel::ChannelError> t = receiver.recv();
-  EXPECT_EQ(true, t.has_value());
+  EXPECT_TRUE(t.has_value());
   EXPECT_EQ(42, t.value());
 }
 

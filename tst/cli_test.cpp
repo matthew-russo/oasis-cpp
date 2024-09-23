@@ -782,6 +782,7 @@ TEST(CliParserTest, EndToEndCliParserTest) {
   int argc2 = 4;
   const char* argv2[] = { "my_test", "command", "subcommand2", "subcommand2subcommand1" };
 
+  cliParser.reset();
   std::expected< Command, CliParsingError > maybeCommand2 = cliParser.parse(argc2, argv2);
 
   EXPECT_TRUE(maybeCommand2.has_value());

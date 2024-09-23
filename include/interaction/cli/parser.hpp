@@ -488,11 +488,15 @@ public:
 
 class Parser {
   std::vector< CommandDefinition > possibleCommands;
-  int offset = 1;
+  int offset = 0;
 
 public:
   Parser(std::vector< CommandDefinition > possibleCommands)
     : possibleCommands(possibleCommands) {}
+
+  void reset() {
+    this->offset = 0;
+  }
 
   ///
   /// argc is the number of command arguments, unmodified from what main gives.
